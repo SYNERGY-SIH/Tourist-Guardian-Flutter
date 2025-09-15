@@ -1,3 +1,5 @@
+// lib/pages/basic_info_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:my_app/utils/colors.dart';
 
@@ -9,13 +11,17 @@ class BasicInfoPage extends StatefulWidget {
 }
 
 class _BasicInfoPageState extends State<BasicInfoPage> {
-  // Placeholder data remains the same
+  // Placeholder data
   String touristId = "TRV-1234-5678-ABCD";
   String groupId = "GRP-9876-5432-EFGH";
-  List<String> emergencyContacts = ["Mom: 9876543210", "Friend: 1234567890"];
-  List<String> placesToVisit = ["Taj Mahal, Agra", "Red Fort, Delhi", "India Gate, Delhi"];
+  List<String> emergencyContacts = ["Mom: 9876543210"];
+  List<String> placesToVisit = ["Guwahati, Assam", "Shillong, Meghalaya", "Dimapur, Assam"];
   int duration = 5;
-  List<String> groupMembers = ["Jane Doe", "Peter Smith"];
+  List<String> groupMembers = ["Ganesh Singh", "Suhani Singh"];
+
+  // NEW: Placeholder data for the band
+  String bandId = "TRK-72C-XYZ";
+  double batteryLevel = 0.82; // Represents 82%
 
   @override
   Widget build(BuildContext context) {
@@ -52,12 +58,25 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
               _buildInfoList(title: "Group Members", items: groupMembers),
             ],
           ),
+          const SizedBox(height: 16), // Spacing before the new card
+
+          // NEW WIDGET: A dedicated card for band information
+          _buildSectionCard(
+            title: "Your Band",
+            icon: Icons.sensors_outlined,
+            children: [
+              _buildInfoRow(title: "Band ID", content: bandId),
+              const Divider(height: 24),
+              _buildBatteryInfo("Battery Level", batteryLevel),
+            ],
+          ),
+
           const SizedBox(height: 80), // Space for the FAB
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Navigate to an edit screen
+          // TODO: Navigate to an edit screen
         },
         label: const Text("Edit Information"),
         icon: const Icon(Icons.edit_outlined),
@@ -114,6 +133,37 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
           ),
         ],
       ),
+    );
+  }
+
+  // NEW WIDGET: A dedicated row for showing battery percentage with a progress bar
+  Widget _buildBatteryInfo(String title, double value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: value,
+                  minHeight: 8,
+                  backgroundColor: AppColors.background,
+                  color: value > 0.2 ? AppColors.primary : AppColors.error,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              "${(value * 100).toInt()}%",
+              style: const TextStyle(color: AppColors.text, fontWeight: FontWeight.bold, fontSize: 14),
+            )
+          ],
+        ),
+      ],
     );
   }
 

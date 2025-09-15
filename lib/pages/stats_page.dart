@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:my_app/utils/colors.dart';
-import 'package:fl_chart/fl_chart.dart'; // You will still need fl_chart
+import 'package:fl_chart/fl_chart.dart';
 
 class StatsPage extends StatelessWidget {
   const StatsPage({Key? key}) : super(key: key);
 
-  // Placeholder data
-  final double cat1 = 80;
-  final double cat2 = 75;
-  final double cat3 = 90;
-  final double cat4 = 65;
-  final double cat5 = 85;
+  // --- MODIFIED: Data is now in a map for better organization ---
+  final Map<String, double> categoryScores = const {
+    "Itinerary Adherence & Zone Safety": 80,
+    "Behavioral Pattern Analysis": 75,
+    "Digital Connectivity & Device Health": 90,
+    "Group Cohesion": 65,
+    "Trip Profile & Engagement": 85,
+  };
 
-  double get averageScore => (cat1 + cat2 + cat3 + cat4 + cat5) / 5;
+  // The getter now calculates the average from the map
+  double get averageScore =>
+      categoryScores.values.reduce((a, b) => a + b) / categoryScores.length;
 
   @override
   Widget build(BuildContext context) {
@@ -33,11 +37,11 @@ class StatsPage extends StatelessWidget {
           // Score Breakdown Section
           _buildSectionHeader("Score Breakdown"),
           const SizedBox(height: 10),
-          _buildCategoryScore("Category 1", cat1),
-          _buildCategoryScore("Category 2", cat2),
-          _buildCategoryScore("Category 3", cat3),
-          _buildCategoryScore("Category 4", cat4),
-          _buildCategoryScore("Category 5", cat5),
+          
+          // --- MODIFIED: Widgets are now generated from the map ---
+          ...categoryScores.entries.map((entry) {
+            return _buildCategoryScore(entry.key, entry.value);
+          }).toList(),
         ],
       ),
     );
@@ -62,9 +66,14 @@ class StatsPage extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(category, style: const TextStyle(color: AppColors.text, fontSize: 16)),
+            Expanded(
+              child: Text(
+                category,
+                style: const TextStyle(color: AppColors.text, fontSize: 16),
+              ),
+            ),
+            const SizedBox(width: 16),
             Text(
               "${score.toInt()}/100",
               style: const TextStyle(
@@ -79,7 +88,7 @@ class StatsPage extends StatelessWidget {
   }
 }
 
-// A new widget for the "Speed Test" style gauge
+// The ScoreGaugeChart widget remains the same
 class ScoreGaugeChart extends StatelessWidget {
   final double score;
   const ScoreGaugeChart({Key? key, required this.score}) : super(key: key);
@@ -95,14 +104,12 @@ class ScoreGaugeChart extends StatelessWidget {
             sectionsSpace: 0,
             centerSpaceRadius: 100,
             sections: [
-              // This section represents the score
               PieChartSectionData(
                 value: score,
                 color: AppColors.primary,
                 radius: 15,
                 showTitle: false,
               ),
-              // This section represents the empty remainder
               PieChartSectionData(
                 value: 100 - score,
                 color: AppColors.surface,

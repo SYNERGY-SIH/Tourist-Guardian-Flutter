@@ -12,6 +12,7 @@ class TripDetailsPage extends StatefulWidget {
 class _TripDetailsPageState extends State<TripDetailsPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isGroup = false;
+  bool _isUsingBand = false; // New state for the band toggle
 
   // Helper for text field validation
   String? _validateNotEmpty(String? value) {
@@ -27,6 +28,8 @@ class _TripDetailsPageState extends State<TripDetailsPage> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text("Your Trip Details"),
+        backgroundColor: AppColors.background,
+        elevation: 0,
       ),
       body: Form(
         key: _formKey,
@@ -67,16 +70,22 @@ class _TripDetailsPageState extends State<TripDetailsPage> {
 
             // --- Section: Group Details ---
             _buildSectionHeader("Group Details"),
-            _buildGroupToggle(), // Replaces the old Checkbox Row
-            _buildConditionalGroupField(), // Animated conditional field
+            _buildGroupToggle(),
+            _buildConditionalGroupField(),
+            const SizedBox(height: 24),
+
+            // --- Section: Band Details (NEW) ---
+            _buildSectionHeader("Band Details"),
+            _buildBandToggle(),
+            _buildConditionalBandField(),
             const SizedBox(height: 40),
 
             // --- Action Button ---
             CustomButton(
               text: "Continue",
               onPressed: () {
-                // The validate() method will now work because of the validators
                 if (_formKey.currentState!.validate()) {
+                  // TODO: Process data
                   Navigator.pushNamed(context, '/tripPlaces');
                 }
               },
@@ -97,6 +106,7 @@ class _TripDetailsPageState extends State<TripDetailsPage> {
     return TextFormField(
       validator: validator,
       keyboardType: keyboardType,
+      style: const TextStyle(color: AppColors.text),
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: icon != null ? Icon(icon, color: AppColors.textSecondary) : null,
@@ -111,14 +121,13 @@ class _TripDetailsPageState extends State<TripDetailsPage> {
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
       ),
-      style: const TextStyle(color: AppColors.text),
     );
   }
 
   // A header for form sections
   Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.only(bottom: 12.0, top: 4.0),
       child: Text(
         title,
         style: const TextStyle(
@@ -130,7 +139,7 @@ class _TripDetailsPageState extends State<TripDetailsPage> {
     );
   }
 
-  // A cleaner, more user-friendly CheckboxListTile
+  // The toggle for group travel
   Widget _buildGroupToggle() {
     return Card(
       elevation: 0,
@@ -150,24 +159,57 @@ class _TripDetailsPageState extends State<TripDetailsPage> {
     );
   }
 
-  // An animated widget for the conditional group member field
+  // The animated field for group member's Aadhar
   Widget _buildConditionalGroupField() {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
-      transitionBuilder: (child, animation) {
-        return SizeTransition(
-          sizeFactor: animation,
-          child: child,
-        );
-      },
+      transitionBuilder: (child, animation) => SizeTransition(sizeFactor: animation, child: child),
       child: _isGroup
           ? Padding(
               padding: const EdgeInsets.only(top: 16.0),
               child: _buildTextField(
-                label: "Aadhar of one group member",
+                label: "Phone number of any 1 member",
                 icon: Icons.group_outlined,
                 keyboardType: TextInputType.number,
                 validator: (value) => _isGroup ? _validateNotEmpty(value) : null,
+              ),
+            )
+          : const SizedBox.shrink(),
+    );
+  }
+
+  // The new toggle for the band
+  Widget _buildBandToggle() {
+    return Card(
+      elevation: 0,
+      color: AppColors.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: CheckboxListTile(
+        title: const Text("Are you using our band?", style: TextStyle(color: AppColors.text)),
+        value: _isUsingBand,
+        onChanged: (bool? value) {
+          setState(() {
+            _isUsingBand = value ?? false;
+          });
+        },
+        activeColor: AppColors.primary,
+        controlAffinity: ListTileControlAffinity.leading,
+      ),
+    );
+  }
+
+  // The new animated field for the Band ID
+  Widget _buildConditionalBandField() {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      transitionBuilder: (child, animation) => SizeTransition(sizeFactor: animation, child: child),
+      child: _isUsingBand
+          ? Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: _buildTextField(
+                label: "Band ID",
+                icon: Icons.sensors_outlined, // Icon for the band
+                validator: (value) => _isUsingBand ? _validateNotEmpty(value) : null,
               ),
             )
           : const SizedBox.shrink(),

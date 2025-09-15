@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geocoding/geocoding.dart'; // <-- IMPORT a
 import 'package:my_app/utils/colors.dart';
 import 'package:my_app/widgets/custom_button.dart';
 
@@ -22,42 +23,81 @@ class TripPlacesPage extends StatefulWidget {
 class _TripPlacesPageState extends State<TripPlacesPage> {
   final _listKey = GlobalKey<AnimatedListState>();
   final TextEditingController _placeController = TextEditingController();
-
-  // THIS LINE IS THE FIX: The list must be of type <Place>
   final List<Place> _places = [];
-
   final Completer<GoogleMapController> _mapController = Completer();
 
-  // Updated initial position to focus on Northeast India
+  // NEW: State for loading indicators
+  bool _isGeocoding = false;
+
   static const CameraPosition _initialPosition = CameraPosition(
-    target: LatLng(26.1445, 91.7362), // Centered on Guwahati, Assam
+    target: LatLng(26.1445, 91.7362),
     zoom: 6.5,
   );
 
-  // Add a place by tapping on the map
-  void _addPlaceFromTap(LatLng position) {
-    setState(() {
-      final placeName = "Tapped Location ${_places.length + 1}";
-      final newPlace = Place(name: placeName, coordinates: position);
-      _places.insert(0, newPlace);
-      _listKey.currentState?.insertItem(0, duration: const Duration(milliseconds: 300));
-    });
-  }
+  // MODIFIED: Reverse geocoding to get address from tap
+  void _addPlaceFromTap(LatLng position) async {
+    try {
+      final List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
 
-  // Add a place by typing its name
-  void _addPlaceFromText() {
-    final placeName = _placeController.text.trim();
-    if (placeName.isNotEmpty) {
-      setState(() {
-        final newPlace = Place(name: placeName); // No coordinates
-        _places.insert(0, newPlace);
-        _listKey.currentState?.insertItem(0, duration: const Duration(milliseconds: 300));
-        _placeController.clear();
-        FocusScope.of(context).unfocus(); // Hide keyboard
-      });
+      if (placemarks.isNotEmpty) {
+        final placemark = placemarks.first;
+        // Create a user-friendly name from the placemark details
+        final placeName = "${placemark.name}, ${placemark.locality}".replaceAll(", ,", ",");
+        final newPlace = Place(name: placeName, coordinates: position);
+
+        setState(() {
+          _places.insert(0, newPlace);
+          _listKey.currentState?.insertItem(0, duration: const Duration(milliseconds: 300));
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not determine address for this location.")),
+      );
     }
   }
 
+  // MODIFIED: Geocoding to get coordinates from text
+  void _addPlaceFromText() async {
+    final placeName = _placeController.text.trim();
+    if (placeName.isEmpty) return;
+
+    setState(() => _isGeocoding = true); // Show loading indicator
+
+    try {
+      final List<Location> locations = await locationFromAddress(placeName);
+      if (locations.isNotEmpty) {
+        final location = locations.first;
+        final newPlace = Place(
+          name: placeName,
+          coordinates: LatLng(location.latitude, location.longitude),
+        );
+        setState(() {
+          _places.insert(0, newPlace);
+          _listKey.currentState?.insertItem(0, duration: const Duration(milliseconds: 300));
+          _placeController.clear();
+          FocusScope.of(context).unfocus();
+        });
+        // Animate map to the new location
+        final controller = await _mapController.future;
+        controller.animateCamera(CameraUpdate.newLatLngZoom(newPlace.coordinates!, 12));
+      } else {
+        throw Exception("No location found.");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Could not find location: '$placeName'")),
+      );
+    } finally {
+      setState(() => _isGeocoding = false); // Hide loading indicator
+    }
+  }
+
+
+  // Unchanged methods...
   void _removePlace(int index) {
     setState(() {
       final removedPlace = _places.removeAt(index);
@@ -71,7 +111,6 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Generate markers dynamically from the places list
     final Set<Marker> markers = _places
         .where((p) => p.coordinates != null)
         .map((p) => Marker(
@@ -94,7 +133,7 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
             children: [
               _buildMapView(markers),
               const SizedBox(height: 20),
-              _buildPlaceInputField(),
+              _buildPlaceInputField(), // This widget is now updated
               const SizedBox(height: 20),
               const Text(
                 "Selected Places",
@@ -148,6 +187,7 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
     );
   }
 
+  // MODIFIED: Input field now shows a loading indicator
   Widget _buildPlaceInputField() {
     return Row(
       children: [
@@ -166,15 +206,18 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
           ),
         ),
         const SizedBox(width: 8),
-        IconButton.filled(
-          style: IconButton.styleFrom(backgroundColor: AppColors.primary),
-          icon: const Icon(Icons.add, color: Colors.white),
-          onPressed: _addPlaceFromText,
-        ),
+        _isGeocoding
+          ? const CircularProgressIndicator()
+          : IconButton.filled(
+              style: IconButton.styleFrom(backgroundColor: AppColors.primary),
+              icon: const Icon(Icons.add, color: Colors.white),
+              onPressed: _addPlaceFromText,
+            ),
       ],
     );
   }
 
+  // The rest of the build methods are unchanged...
   Widget _buildPlacesList() {
     return AnimatedList(
       key: _listKey,
