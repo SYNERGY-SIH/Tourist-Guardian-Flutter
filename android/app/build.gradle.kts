@@ -5,6 +5,15 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Add this block at the top
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
 android {
     namespace = "com.example.my_app"
     compileSdk = flutter.compileSdkVersion
@@ -28,6 +37,11 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // ADD THIS PART
+        manifestPlaceholders = [
+            MAPS_API_KEY: localProperties.getProperty('MAPS_API_KEY')
+        ]
     }
 
     buildTypes {

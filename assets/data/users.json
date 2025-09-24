@@ -1,0 +1,38 @@
+[
+  {
+    "phone": "8591100764",
+    "mpin": "000001",
+    "name": "Ganesh Singh",
+    "dob": "26-05-2005",
+    "gender": "Male",
+    "aadhaar": "**** **** 5678",
+    "photoUrl": "assets/images/ganesh.jpg"
+  },
+  {
+    "phone": "8928058372",
+    "mpin": "000002",
+    "name": "Anuj Singh",
+    "dob": "23-06-2005",
+    "gender": "Male",
+    "aadhaar": "**** **** 9876",
+    "photoUrl": "assets/images/anuj.png"
+  },
+  {
+    "phone": "9653250090",
+    "mpin": "000003",
+    "name": "Suhani Singh",
+    "dob": "12-11-2004",
+    "gender": "Female",
+    "aadhaar": "**** **** 1234",
+    "photoUrl": "assets/images/suhani.png"
+  },
+  {
+    "phone": "8983468521",
+    "mpin": "000004",
+    "name": "Himesh Pal",
+    "dob": "23-06-2005",
+    "gender": "Male",
+    "aadhaar": "**** **** 1234",
+    "photoUrl": "assets/images/himesh.png"
+  }
+]

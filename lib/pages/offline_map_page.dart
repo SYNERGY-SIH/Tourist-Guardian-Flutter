@@ -1,9 +1,9 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:my_app/utils/colors.dart';
 import 'package:my_app/widgets/custom_button.dart';
+import 'package:my_app/l10n/app_localizations.dart';
 
 enum ZoneType { red, yellow, grey }
 
@@ -16,7 +16,7 @@ class Zone {
 }
 
 class OfflineMapPage extends StatefulWidget {
-  const OfflineMapPage({Key? key}) : super(key: key);
+  const OfflineMapPage({super.key});
 
   @override
   State<OfflineMapPage> createState() => _OfflineMapPageState();
@@ -38,22 +38,14 @@ class _OfflineMapPageState extends State<OfflineMapPage> {
   };
 
   final List<Zone> _zones = [
-    // Red Zones
     Zone(id: "r1", center: const LatLng(26.18, 91.74), type: ZoneType.red),
     Zone(id: "r2", center: const LatLng(25.57, 91.89), type: ZoneType.red),
-    // ... other red zones
-
-    // Yellow Zones
     Zone(id: "y1", center: const LatLng(27.68, 92.40), type: ZoneType.yellow),
     Zone(id: "y2", center: const LatLng(26.75, 94.21), type: ZoneType.yellow),
-    // ... other yellow zones
-
-    // Grey Zones for Natural Disasters
     Zone(id: "g1", center: const LatLng(27.33, 92.64), type: ZoneType.grey),
-    // NEW: Additional Grey Zones
-    Zone(id: "g2", center: const LatLng(23.36, 92.71), type: ZoneType.grey), // Mizoram - Landslide Prone
-    Zone(id: "g3", center: const LatLng(25.90, 93.75), type: ZoneType.grey), // Nagaland - Flood Prone
-    Zone(id: "g4", center: const LatLng(27.60, 95.35), type: ZoneType.grey), // Arunachal - Remote Area
+    Zone(id: "g2", center: const LatLng(23.36, 92.71), type: ZoneType.grey),
+    Zone(id: "g3", center: const LatLng(25.90, 93.75), type: ZoneType.grey),
+    Zone(id: "g4", center: const LatLng(27.60, 95.35), type: ZoneType.grey),
   ];
 
   Set<Circle> _zoneCircles = {};
@@ -63,8 +55,12 @@ class _OfflineMapPageState extends State<OfflineMapPage> {
   @override
   void initState() {
     super.initState();
-    _buildZones();
-    _loadCustomMarkers();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _buildZones();
+        _loadCustomMarkers();
+      }
+    });
   }
 
   void _loadCustomMarkers() async {
@@ -72,17 +68,12 @@ class _OfflineMapPageState extends State<OfflineMapPage> {
     final BitmapDescriptor policeIcon = await _createCustomMarkerBitmap(Icons.local_police, Colors.blue);
 
     final safePoints = <Marker>{
-      // Hospitals
       Marker(markerId: const MarkerId("h1"), position: const LatLng(26.14, 91.75), infoWindow: const InfoWindow(title: "Guwahati Medical College"), icon: hospitalIcon),
       Marker(markerId: const MarkerId("h2"), position: const LatLng(25.57, 91.88), infoWindow: const InfoWindow(title: "NEIGRIHMS Hospital, Shillong"), icon: hospitalIcon),
       Marker(markerId: const MarkerId("h3"), position: const LatLng(27.48, 94.92), infoWindow: const InfoWindow(title: "Assam Medical College, Dibrugarh"), icon: hospitalIcon),
-
-      // Police Stations (Original 3)
       Marker(markerId: const MarkerId("p1"), position: const LatLng(26.19, 91.75), infoWindow: const InfoWindow(title: "Paltan Bazaar Police Station"), icon: policeIcon),
       Marker(markerId: const MarkerId("p2"), position: const LatLng(25.57, 91.89), infoWindow: const InfoWindow(title: "Sadar Police Station, Shillong"), icon: policeIcon),
       Marker(markerId: const MarkerId("p3"), position: const LatLng(23.83, 91.27), infoWindow: const InfoWindow(title: "Agartala West Police Station"), icon: policeIcon),
-      
-      // NEW: 20 Additional Police Stations
       Marker(markerId: const MarkerId("p4"), position: const LatLng(26.15, 91.73), infoWindow: const InfoWindow(title: "Dispur Police Station, Guwahati"), icon: policeIcon),
       Marker(markerId: const MarkerId("p5"), position: const LatLng(24.81, 93.93), infoWindow: const InfoWindow(title: "Imphal Police Station, Manipur"), icon: policeIcon),
       Marker(markerId: const MarkerId("p6"), position: const LatLng(23.72, 92.71), infoWindow: const InfoWindow(title: "Aizawl Police Station, Mizoram"), icon: policeIcon),
@@ -113,6 +104,7 @@ class _OfflineMapPageState extends State<OfflineMapPage> {
   }
   
   void _buildZones() {
+    final l10n = AppLocalizations.of(context)!;
     final circles = <Circle>{};
     final markers = <Marker>{};
 
@@ -120,11 +112,12 @@ class _OfflineMapPageState extends State<OfflineMapPage> {
       final double radius = zone.type == ZoneType.red ? 20000 : (zone.type == ZoneType.yellow ? 10000 : 30000);
       final Color fillColor = zone.type == ZoneType.red ? Colors.red.withOpacity(0.3) : (zone.type == ZoneType.yellow ? Colors.yellow.withOpacity(0.3) : Colors.grey.withOpacity(0.4));
       final Color strokeColor = zone.type == ZoneType.red ? Colors.red : (zone.type == ZoneType.yellow ? Colors.yellow : Colors.grey);
+      
       final String snippet = zone.type == ZoneType.red
-          ? "High number of crime reports in this area."
+          ? l10n.highCrimeReports
           : (zone.type == ZoneType.yellow
-              ? "Area with moderate crime reports. Caution advised."
-              : "Natural Disaster Alert: High risk of landslides/floods.");
+              ? l10n.moderateCrimeReports
+              : l10n.naturalDisasterAlert);
 
       circles.add(
         Circle(
@@ -144,7 +137,7 @@ class _OfflineMapPageState extends State<OfflineMapPage> {
           alpha: 0.0,
           anchor: const Offset(0.5, 0.5),
           infoWindow: InfoWindow(
-            title: zone.type == ZoneType.grey ? "Natural Disaster Zone" : "Alert Zone",
+            title: zone.type == ZoneType.grey ? l10n.naturalDisasterZone : l10n.alertZone,
             snippet: snippet,
           ),
         ),
@@ -188,17 +181,18 @@ class _OfflineMapPageState extends State<OfflineMapPage> {
   }
 
   Widget _buildActivitySection() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text("Activity Section", textAlign: TextAlign.center, style: TextStyle(color: AppColors.text, fontSize: 22, fontWeight: FontWeight.bold)),
+          Text(l10n.activitySection, textAlign: TextAlign.center, style: TextStyle(color: AppColors.text, fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
-          CustomButton(text: "Report an Incident", onPressed: () {}),
+          CustomButton(text: l10n.reportAnIncident, onPressed: () {}),
           const SizedBox(height: 12),
-          CustomButton(text: "Self-Defense Tutorials", onPressed: () {}),
+          CustomButton(text: l10n.selfDefenseTutorials, onPressed: () {}),
         ],
       ),
     );

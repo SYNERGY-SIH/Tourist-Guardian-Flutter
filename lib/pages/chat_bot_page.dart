@@ -1,5 +1,3 @@
-// lib/pages/chat_bot_page.dart
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -8,8 +6,8 @@ import 'package:my_app/utils/colors.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:http/http.dart' as http;
 import 'package:translator/translator.dart';
+import 'package:my_app/l10n/app_localizations.dart';
 
-// ChatMessage class remains the same
 class ChatMessage {
   final String text;
   final bool isUser;
@@ -38,9 +36,6 @@ class _ChatBotPageState extends State<ChatBotPage> {
   bool _isBotTyping = false;
   bool _interactiveReplied = false;
 
-  // NEW: State to hold the last detected language
-  String _lastDetectedLanguage = 'en';
-
   final SpeechToText _speechToText = SpeechToText();
   bool _speechEnabled = false;
   bool _isListening = false;
@@ -55,7 +50,6 @@ class _ChatBotPageState extends State<ChatBotPage> {
     _addBotMessage("Hi Anuj, my name is Radha. How can I help you?");
   }
 
-  // MODIFIED: This function now uses the new BotResponsePayload
   void _handleUserMessage(String text) async {
     if (text.isEmpty) return;
     if (_isListening) _stopListening();
@@ -76,8 +70,6 @@ class _ChatBotPageState extends State<ChatBotPage> {
 
     setState(() {
       _isBotTyping = false;
-      // Store the detected language
-      _lastDetectedLanguage = botResponse.detectedLanguage;
     });
 
     for (final response in botResponse.messages) {
@@ -90,8 +82,8 @@ class _ChatBotPageState extends State<ChatBotPage> {
   }
 
   void _handleInteractiveReply(String choice) {
-    // We send the English version of the choice to the bot
-    final englishChoice = (choice == "हो") ? "Yes" : (choice == "नाही" ? "No" : choice);
+    final l10n = AppLocalizations.of(context)!;
+    final englishChoice = (choice == l10n.yes) ? "Yes" : "No";
     
     setState(() {
       _interactiveReplied = true;
@@ -106,34 +98,22 @@ class _ChatBotPageState extends State<ChatBotPage> {
     }
   }
   
-  // MODIFIED: This function now displays the prompt in the correct language
   void _showTrackingPrompt() {
-    String promptText;
-    List<String> options;
-
-    if (_lastDetectedLanguage == 'mr') {
-      promptText = "हे अनुज, तुम्हाला सुरक्षित वाटेपर्यंत मी तुमचे लोकेशन रिअल टाइममध्ये ट्रॅक करावे असे वाटते का?";
-      options = ["हो", "नाही"]; // Yes, No in Marathi
-    } else {
-      promptText = "Hey Anuj, do you want me to track your location in real time until you feel safe?";
-      options = ["Yes", "No"];
-    }
-
+    final l10n = AppLocalizations.of(context)!;
     setState(() {
       _interactiveReplied = false;
       _messages.add(
         ChatMessage(
-          text: promptText,
+          text: l10n.trackingPrompt,
           isUser: false,
           isInteractive: true,
-          options: options,
+          options: [l10n.yes, l10n.no],
         ),
       );
     });
     _scrollToBottom();
   }
 
-  // --- Other methods are unchanged ---
   void _initSpeech() async {
     _speechEnabled = await _speechToText.initialize();
     setState(() {});
@@ -170,11 +150,11 @@ class _ChatBotPageState extends State<ChatBotPage> {
 
   @override
   Widget build(BuildContext context) {
-    // ... Build method is unchanged ...
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text("Support Chat"),
+        title: Text(l10n.supportChat),
         backgroundColor: AppColors.surface,
       ),
       body: Column(
@@ -195,24 +175,23 @@ class _ChatBotPageState extends State<ChatBotPage> {
             ),
           ),
           if (_isBotTyping)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
               child: Row(
                 children: [
-                  SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-                  SizedBox(width: 8),
-                  Text("Radha is typing..."),
+                  const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                  const SizedBox(width: 8),
+                  Text(l10n.radhaIsTyping),
                 ],
               ),
             ),
-          _buildMessageInputField(),
+          _buildMessageInputField(l10n),
         ],
       ),
     );
   }
 
-  Widget _buildMessageInputField() {
-    // ... This widget is unchanged ...
+  Widget _buildMessageInputField(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(12.0),
       decoration: const BoxDecoration(
@@ -227,7 +206,7 @@ class _ChatBotPageState extends State<ChatBotPage> {
                 controller: _textController,
                 onSubmitted: _handleUserMessage,
                 decoration: InputDecoration(
-                  hintText: "Type or speak...",
+                  hintText: l10n.typeOrSpeak,
                   filled: true,
                   fillColor: AppColors.background,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
@@ -239,7 +218,7 @@ class _ChatBotPageState extends State<ChatBotPage> {
             IconButton(
               icon: Icon(_isListening ? Icons.mic_off : Icons.mic, color: AppColors.primary),
               onPressed: _speechEnabled ? (_isListening ? _stopListening : _startListening) : null,
-              tooltip: "Speak your message",
+              tooltip: l10n.speakYourMessage,
             ),
             IconButton.filled(
               style: IconButton.styleFrom(backgroundColor: AppColors.primary),
@@ -254,7 +233,6 @@ class _ChatBotPageState extends State<ChatBotPage> {
 }
 
 class _ChatMessageBubble extends StatelessWidget {
-  // ... This widget is unchanged ...
   final ChatMessage message;
   final bool isInteractiveDisabled;
   final void Function(String) onOptionSelected;
@@ -308,14 +286,8 @@ class _ChatMessageBubble extends StatelessWidget {
   }
 }
 
-
-// ############################################################################
-// #                   BACKEND CHATBOT LOGIC STARTS HERE                      #
-// ############################################################################
-
 const String chatbotInteractiveTrigger = "__INTERACTIVE_PROMPT_TRACKING__";
 
-// NEW: A class to hold the bot's response and detected language
 class BotResponsePayload {
   final List<String> messages;
   final String detectedLanguage;
@@ -323,7 +295,6 @@ class BotResponsePayload {
 }
 
 class Chat {
-  // ... (Chat class is unchanged)
   final List<MapEntry<RegExp, List<String>>> _pairs;
   final Map<String, String> _reflections;
   final RegExp _regex;
@@ -373,7 +344,6 @@ class Chat {
   }
 }
 
-// MODIFIED: RuleBasedChatbot now returns a BotResponsePayload
 class RuleBasedChatbot {
   final Chat chat;
   final GoogleTranslator translator = GoogleTranslator();
@@ -421,8 +391,8 @@ class RuleBasedChatbot {
       String englishResponse = chat.respond(englishInput) ?? "I am sorry, but I do not understand.";
       List<String> messages;
 
-      if (detectedLanguage == 'mr') {
-        final finalResponse = await translator.translate(englishResponse, from: 'en', to: 'mr');
+      if (detectedLanguage == 'mr' || detectedLanguage == 'hi') {
+        final finalResponse = await translator.translate(englishResponse, from: 'en', to: detectedLanguage);
         messages = [finalResponse.text];
       } else {
         messages = [englishResponse];
@@ -435,7 +405,6 @@ class RuleBasedChatbot {
   }
 
   Future<String> _getNearestPoliceStation(double latitude, double longitude) async {
-    // ... This method is unchanged ...
     final url = "https://investigationcamp.com/map.php?latitude=$latitude&longitude=$longitude";
     try {
       final response = await http.get(Uri.parse(url));
@@ -458,7 +427,6 @@ class RuleBasedChatbot {
   }
 }
 
-// Data for the chatbot is unchanged
 final reflections = {
   "i am": "you are", "i was": "you were", "i": "you", "i'm": "you are", "i'd": "you would",
   "i've": "you have", "i'll": "you will", "my": "your", "you are": "I am", "you were": "I was",

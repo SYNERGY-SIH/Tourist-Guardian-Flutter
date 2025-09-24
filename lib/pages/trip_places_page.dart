@@ -1,20 +1,20 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geocoding/geocoding.dart'; // <-- IMPORT a
+import 'package:geocoding/geocoding.dart';
 import 'package:my_app/utils/colors.dart';
 import 'package:my_app/widgets/custom_button.dart';
+import 'package:my_app/l10n/app_localizations.dart';
 
-// A simple data class to hold place information
 class Place {
   final String name;
-  final LatLng? coordinates; // Nullable for places added by name
+  final LatLng? coordinates;
 
   Place({required this.name, this.coordinates});
 }
 
 class TripPlacesPage extends StatefulWidget {
-  const TripPlacesPage({Key? key}) : super(key: key);
+  const TripPlacesPage({super.key});
 
   @override
   _TripPlacesPageState createState() => _TripPlacesPageState();
@@ -25,8 +25,6 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
   final TextEditingController _placeController = TextEditingController();
   final List<Place> _places = [];
   final Completer<GoogleMapController> _mapController = Completer();
-
-  // NEW: State for loading indicators
   bool _isGeocoding = false;
 
   static const CameraPosition _initialPosition = CameraPosition(
@@ -34,20 +32,14 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
     zoom: 6.5,
   );
 
-  // MODIFIED: Reverse geocoding to get address from tap
   void _addPlaceFromTap(LatLng position) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
-      final List<Placemark> placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
-
+      final List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
       if (placemarks.isNotEmpty) {
         final placemark = placemarks.first;
-        // Create a user-friendly name from the placemark details
         final placeName = "${placemark.name}, ${placemark.locality}".replaceAll(", ,", ",");
         final newPlace = Place(name: placeName, coordinates: position);
-
         setState(() {
           _places.insert(0, newPlace);
           _listKey.currentState?.insertItem(0, duration: const Duration(milliseconds: 300));
@@ -55,33 +47,27 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Could not determine address for this location.")),
+        SnackBar(content: Text(l10n.couldNotDetermineAddress)),
       );
     }
   }
 
-  // MODIFIED: Geocoding to get coordinates from text
   void _addPlaceFromText() async {
+    final l10n = AppLocalizations.of(context)!;
     final placeName = _placeController.text.trim();
     if (placeName.isEmpty) return;
-
-    setState(() => _isGeocoding = true); // Show loading indicator
-
+    setState(() => _isGeocoding = true);
     try {
       final List<Location> locations = await locationFromAddress(placeName);
       if (locations.isNotEmpty) {
         final location = locations.first;
-        final newPlace = Place(
-          name: placeName,
-          coordinates: LatLng(location.latitude, location.longitude),
-        );
+        final newPlace = Place(name: placeName, coordinates: LatLng(location.latitude, location.longitude));
         setState(() {
           _places.insert(0, newPlace);
           _listKey.currentState?.insertItem(0, duration: const Duration(milliseconds: 300));
           _placeController.clear();
           FocusScope.of(context).unfocus();
         });
-        // Animate map to the new location
         final controller = await _mapController.future;
         controller.animateCamera(CameraUpdate.newLatLngZoom(newPlace.coordinates!, 12));
       } else {
@@ -89,15 +75,13 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Could not find location: '$placeName'")),
+        SnackBar(content: Text(l10n.couldNotFindLocation(placeName))),
       );
     } finally {
-      setState(() => _isGeocoding = false); // Hide loading indicator
+      setState(() => _isGeocoding = false);
     }
   }
 
-
-  // Unchanged methods...
   void _removePlace(int index) {
     setState(() {
       final removedPlace = _places.removeAt(index);
@@ -111,6 +95,7 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final Set<Marker> markers = _places
         .where((p) => p.coordinates != null)
         .map((p) => Marker(
@@ -123,7 +108,7 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text("Plan Your Itinerary"),
+        title: Text(l10n.planYourItinerary),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -133,28 +118,24 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
             children: [
               _buildMapView(markers),
               const SizedBox(height: 20),
-              _buildPlaceInputField(), // This widget is now updated
+              _buildPlaceInputField(l10n.orTypeAPlaceName),
               const SizedBox(height: 20),
-              const Text(
-                "Selected Places",
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+              Text(
+                l10n.selectedPlaces,
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               _places.isEmpty
-                  ? _buildEmptyState()
+                  ? _buildEmptyState(l10n.itineraryIsEmpty)
                   : _buildPlacesList(),
               const SizedBox(height: 20),
               CustomButton(
-                text: "Finish and Get ID",
+                text: l10n.finishAndGetId,
                 onPressed: () {
                   if (_places.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Please add at least one place."),
+                      SnackBar(
+                        content: Text(l10n.pleaseAddAtLeastOnePlace),
                         backgroundColor: AppColors.error,
                       ),
                     );
@@ -169,7 +150,7 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
       ),
     );
   }
-
+  
   Widget _buildMapView(Set<Marker> markers) {
     return SizedBox(
       height: 300,
@@ -187,8 +168,7 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
     );
   }
 
-  // MODIFIED: Input field now shows a loading indicator
-  Widget _buildPlaceInputField() {
+  Widget _buildPlaceInputField(String hintText) {
     return Row(
       children: [
         Expanded(
@@ -196,7 +176,7 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
             controller: _placeController,
             onFieldSubmitted: (_) => _addPlaceFromText(),
             decoration: InputDecoration(
-              hintText: "Or type a place name...",
+              hintText: hintText,
               filled: true,
               fillColor: AppColors.surface,
               prefixIcon: const Icon(Icons.edit_location_alt_outlined, color: AppColors.textSecondary),
@@ -217,7 +197,6 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
     );
   }
 
-  // The rest of the build methods are unchanged...
   Widget _buildPlacesList() {
     return AnimatedList(
       key: _listKey,
@@ -249,7 +228,7 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(String text) {
      return Card(
       elevation: 0,
       color: AppColors.surface,
@@ -259,10 +238,10 @@ class _TripPlacesPageState extends State<TripPlacesPage> {
           children: [
             const Icon(Icons.info_outline, color: AppColors.primary),
             const SizedBox(height: 12),
-            const Text(
-              "Your itinerary is empty. Tap on the map or type a name to add a destination.",
+            Text(
+              text,
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary),
+              style: const TextStyle(color: AppColors.textSecondary),
             ),
           ],
         ),

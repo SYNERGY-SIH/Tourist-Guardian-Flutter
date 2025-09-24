@@ -6,8 +6,7 @@ class PieChartWidget extends StatefulWidget {
   final double score;
   final List<double> categories;
 
-  const PieChartWidget({Key? key, required this.score, required this.categories})
-      : super(key: key);
+  const PieChartWidget({super.key, required this.score, required this.categories});
 
   @override
   State<PieChartWidget> createState() => _PieChartWidgetState();

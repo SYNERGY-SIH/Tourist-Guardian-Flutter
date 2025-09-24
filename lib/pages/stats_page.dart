@@ -1,47 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:my_app/utils/colors.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:my_app/l10n/app_localizations.dart';
 
 class StatsPage extends StatelessWidget {
-  const StatsPage({Key? key}) : super(key: key);
-
-  // --- MODIFIED: Data is now in a map for better organization ---
-  final Map<String, double> categoryScores = const {
-    "Itinerary Adherence & Zone Safety": 80,
-    "Behavioral Pattern Analysis": 75,
-    "Digital Connectivity & Device Health": 90,
-    "Group Cohesion": 65,
-    "Trip Profile & Engagement": 85,
-  };
-
-  // The getter now calculates the average from the map
-  double get averageScore =>
-      categoryScores.values.reduce((a, b) => a + b) / categoryScores.length;
+  const StatsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    // Data is now separate from the keys used for display
+    final Map<String, double> categoryScoresData = const {
+      "itineraryAdherence": 80,
+      "behavioralAnalysis": 75,
+      "digitalConnectivity": 90,
+      "groupCohesion": 65,
+      "tripProfile": 85,
+    };
+    
+    // Helper map to get the correct translated string from a key
+    final Map<String, String> keyToDisplayString = {
+      "itineraryAdherence": l10n.itineraryAdherence,
+      "behavioralAnalysis": l10n.behavioralAnalysis,
+      "digitalConnectivity": l10n.digitalConnectivity,
+      "groupCohesion": l10n.groupCohesion,
+      "tripProfile": l10n.tripProfile,
+    };
+
+    final double averageScore =
+        categoryScoresData.values.reduce((a, b) => a + b) / categoryScoresData.length;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: ListView(
         padding: const EdgeInsets.all(24.0),
         children: [
-          // New Gauge Chart
-          _buildSectionHeader("Overall Safety Score"),
+          _buildSectionHeader(l10n.overallSafetyScore),
           const SizedBox(height: 20),
           SizedBox(
             height: 250,
-            child: ScoreGaugeChart(score: averageScore),
+            child: ScoreGaugeChart(score: averageScore, outOfText: l10n.outOf100),
           ),
           const SizedBox(height: 40),
-
-          // Score Breakdown Section
-          _buildSectionHeader("Score Breakdown"),
+          _buildSectionHeader(l10n.scoreBreakdown),
           const SizedBox(height: 10),
-          
-          // --- MODIFIED: Widgets are now generated from the map ---
-          ...categoryScores.entries.map((entry) {
-            return _buildCategoryScore(entry.key, entry.value);
-          }).toList(),
+          ...categoryScoresData.entries.map((entry) {
+            // Use the helper map to get the translated category name
+            final categoryName = keyToDisplayString[entry.key] ?? entry.key;
+            return _buildCategoryScore(categoryName, entry.value);
+          }),
         ],
       ),
     );
@@ -88,10 +96,10 @@ class StatsPage extends StatelessWidget {
   }
 }
 
-// The ScoreGaugeChart widget remains the same
 class ScoreGaugeChart extends StatelessWidget {
   final double score;
-  const ScoreGaugeChart({Key? key, required this.score}) : super(key: key);
+  final String outOfText;
+  const ScoreGaugeChart({super.key, required this.score, required this.outOfText});
 
   @override
   Widget build(BuildContext context) {
@@ -130,9 +138,9 @@ class ScoreGaugeChart extends StatelessWidget {
                 color: AppColors.primary,
               ),
             ),
-            const Text(
-              "out of 100",
-              style: TextStyle(
+            Text(
+              outOfText,
+              style: const TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 16,
               ),

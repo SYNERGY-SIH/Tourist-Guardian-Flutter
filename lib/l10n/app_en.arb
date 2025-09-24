@@ -1,0 +1,117 @@
+{
+  "@@locale": "en",
+  "welcomeMessage": "Welcome",
+  "tagline": "Your personal travel companion",
+  "selfRegister": "Self-Register",
+  "foreignNriLogin": "Foreign / NRI Login", 
+  "counterDeskRegister": "Counter Desk Register", 
+  "welcomeNickname": "Welcome, {nickname}",
+  "@welcomeNickname": {
+    "placeholders": {
+      "nickname": { "type": "String" }
+    }
+  },
+  "signIn": "Sign in",
+  "chatWithUs": "Chat with us",
+  "sosAlert": "SOS Alert",
+  "sosAlertTriggered": "SOS Alert Triggered!",
+  "validationCannotBeEmpty": "This field cannot be empty",
+  "yourTripDetails": "Your Trip Details",
+  "personalInfo": "Personal Info",
+  "yourNickname": "Your Nickname",
+  "tripDurationInDays": "Trip Duration (in days)",
+  "emergencyContacts": "Emergency Contacts",
+  "contact1Name": "Contact 1 Name",
+  "contact1Phone": "Contact 1 Phone",
+  "groupDetails": "Group Details",
+  "areYouTravellingInAGroup": "Are you travelling in a group?",
+  "phoneNumber1Member": "Phone number of any 1 member",
+  "bandDetails": "Band Details",
+  "areYouUsingOurBand": "Are you using our band?",
+  "bandId": "Band ID",
+  "continueButton": "Continue",
+
+  "planYourItinerary": "Plan Your Itinerary",
+  "couldNotDetermineAddress": "Could not determine address for this location.",
+  "couldNotFindLocation": "Could not find location: '{placeName}'",
+  "@couldNotFindLocation": {
+    "placeholders": {
+      "placeName": { "type": "String" }
+    }
+  },
+  "orTypeAPlaceName": "Or type a place name...",
+  "selectedPlaces": "Selected Places",
+  "itineraryIsEmpty": "Your itinerary is empty. Tap on the map or type a name to add a destination.",
+  "finishAndGetId": "Finish and Get ID",
+  "pleaseAddAtLeastOnePlace": "Please add at least one place.",
+
+  "digilockerVerification": "DigiLocker Verification",
+  "enterYourLabel": "Enter your {label}",
+  "@enterYourLabel": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "phoneNumber": "Phone Number",
+  "sixDigitMpin": "6-Digit MPIN",
+  "sixDigitOtp": "6-Digit OTP",
+  "pleaseEnterAValidLabel": "Please enter a valid {label}",
+  "@pleaseEnterAValidLabel": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "aadhaarDetails": "Aadhaar Details",
+  "name": "Name",
+  "dateOfBirth": "Date of Birth",
+  "gender": "Gender",
+  "aadhaarNo": "Aadhaar No.",
+  "next": "Next",
+
+  "basicInfo": "Basic Info",
+  "stats": "Stats",
+  "map": "Map",
+  "identification": "Identification",
+  "touristId": "Tourist ID",
+  "groupId": "Group ID",
+  "tripDetails": "Trip Details",
+  "duration": "Duration",
+  "durationInDays": "{duration} days",
+  "@durationInDays": {
+    "placeholders": {
+      "duration": { "type": "String" }
+    }
+  },
+  "placesToVisit": "Places to Visit",
+  "contactsAndGroup": "Contacts & Group",
+  "groupMembers": "Group Members",
+  "yourBand": "Your Band",
+  "batteryLevel": "Battery Level",
+  "editInformation": "Edit Information",
+
+  "overallSafetyScore": "Overall Safety Score",
+  "outOf100": "out of 100",
+  "scoreBreakdown": "Score Breakdown",
+  "itineraryAdherence": "Itinerary Adherence & Zone Safety",
+  "behavioralAnalysis": "Behavioral Pattern Analysis",
+  "digitalConnectivity": "Digital Connectivity & Device Health",
+  "groupCohesion": "Group Cohesion",
+  "tripProfile": "Trip Profile & Engagement",
+
+  "activitySection": "Activity Section",
+  "reportAnIncident": "Report an Incident",
+  "selfDefenseTutorials": "Self-Defense Tutorials",
+  "highCrimeReports": "High number of crime reports in this area.",
+  "moderateCrimeReports": "Area with moderate crime reports. Caution advised.",
+  "naturalDisasterAlert": "Natural Disaster Alert: High risk of landslides/floods.",
+  "naturalDisasterZone": "Natural Disaster Zone",
+  "alertZone": "Alert Zone",
+
+  "supportChat": "Support Chat",
+  "radhaIsTyping": "Radha is typing...",
+  "typeOrSpeak": "Type or speak...",
+  "speakYourMessage": "Speak your message",
+  "trackingPrompt": "Hey Anuj, do you want me to track your location in real time until you feel safe?",
+  "yes": "Yes",
+  "no": "No"
+}

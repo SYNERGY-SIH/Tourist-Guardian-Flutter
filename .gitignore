@@ -30,7 +30,6 @@ migrate_working_dir/
 .flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
-.pub/
 /build/
 
 # Symbolication related
@@ -43,3 +42,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Generated localization files (as they are created from .arb files)
+lib/l10n/app_localizations.dart
+lib/l10n/app_localizations_*.dart
